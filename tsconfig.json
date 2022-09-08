@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "sourceMap": true,
+    "declaration": true
+  },
+  "include": ["./test", "./src", "./scripts"],
+  "exclude": [ "node_modules"],
+  "files": ["./hardhat.config.ts"]
+}
