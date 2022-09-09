@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import "../interfaces/IGasTank.sol";
 import "../interfaces/ITreasury.sol";
+import "../utils/AllowedExecutors.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -10,14 +11,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /// @title GasTank Contract
 /// @notice Contract in which the user will deposit ETH (to pay gas costs) and DAEM (to pay tips).
 /// Executors will inform the GasTank each time a script is run and this will subtract the due amounts.
-contract GasTank is IGasTank, Ownable {
+contract GasTank is IGasTank, Ownable, AllowedExecutors {
     ITreasury public treasury;
     IERC20 internal DAEMToken;
     mapping(address => uint256) gasBalances;
     mapping(address => uint256) tipBalances;
     mapping(address => uint256) rewardFromGas;
     mapping(address => uint256) rewardFromTips;
-    mapping(address => bool) executors;
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
@@ -29,14 +29,6 @@ contract GasTank is IGasTank, Ownable {
     function setDAEMToken(address _token) external onlyOwner {
         require(_token != address(0));
         DAEMToken = IERC20(_token);
-    }
-
-    function addExecutor(address executor) external onlyOwner {
-        executors[executor] = true;
-    }
-
-    function removeExecutor(address executor) external onlyOwner {
-        executors[executor] = false;
     }
 
     /** Checks whether the contract is ready to operate */
@@ -118,8 +110,7 @@ contract GasTank is IGasTank, Ownable {
         uint256 tipAmount,
         address user,
         address executor
-    ) external override {
-        require(executors[_msgSender()], "Unauthorized. Only Executors");
+    ) external override onlyAllowedExecutors {
         gasBalances[user] -= ethAmount;
         rewardFromGas[executor] += ethAmount;
 
