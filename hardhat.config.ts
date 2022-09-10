@@ -16,6 +16,11 @@ const config: HardhatUserConfig = {
             chainId: 42,
             accounts: [PRIVATE_KEY]
         },
+        ftm_testnet: {
+            url: process.env.FANTOM_TESTNET_RPC!,
+            chainId: 4002,
+            accounts: [PRIVATE_KEY]
+        },
         mumbai_testnet: {
             url: process.env.MUMBAI_RPC!,
             chainId: 80001,
@@ -44,7 +49,9 @@ const config: HardhatUserConfig = {
             mainnet: process.env.ETH_ETHERSCAN_KEY!,
             kovan: process.env.ETH_ETHERSCAN_KEY!,
             arbitrumOne: process.env.ARBITRUM_ETHERSCAN_KEY!,
-            polygonMumbai: process.env.MUMBAI_ETHERSCAN_KEY!
+            polygonMumbai: process.env.MUMBAI_ETHERSCAN_KEY!,
+            fantom: process.env.FANTOM_ETHERSCAN_KEY!,
+            ftmTestnet: process.env.FANTOM_ETHERSCAN_KEY!
         }
     },
     mocha: {

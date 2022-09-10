@@ -23,11 +23,17 @@ export const contracts: { [chainId: number]: DaemonsContracts } = {
         ZapOutScriptExecutor: "0xf4970Baa7B2520d0FD4744bf372e96a56bde247B",
         PassScriptExecutor: "0xA0f11D2d40A2693BA4F536b5154d4082484e2dfA"
     },
+    // Fantom Testnet
+    4002: {
+        IUniswapV2Router01: "0xa6AD18C2aC47803E193F75c3677b14BF19B94883",
+        AavePriceOracle: "0xA840C768f7143495790eC8dc2D5f32B71B6Dc113",
+        DaemonsToken: "0x38b29255994a57Ce80E52d95301ed1A980A3c5f9",
+    },
     // Mumbai Testnet
     80001: {
         IUniswapV2Router01: "0x8954AfA98594b838bda56FE4C12a09D7739D179b",
         AavePriceOracle: "0x520D14AE678b41067f029Ad770E2870F85E76588",
-        DaemonsToken: "0x9f82626CaD80b6C87ee681c21F1E46AFD5cE2222",
+        DaemonsToken: "0xD29dC02B97640E57F1a90e5B4C105294c3b67406",
         GasTank: "0x9AE02Fd2B6386a987CF236AFe83912DA364be960",
         GasPriceFeed: "0xEfE5BB36d84024F03B185B018BB1217C4C7d46cB",
         Vesting: "0x395B6b68D7938794fa12fd5E4cDa1085940F806D",

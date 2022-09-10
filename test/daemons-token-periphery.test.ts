@@ -50,4 +50,26 @@ describe("Periphery DAEM Token", function () {
         const removeExecutor = DAEM.connect(otherAddress).removeExecutor(executor.address);
         await expect(removeExecutor).to.be.revertedWith("Ownable: caller is not the owner");
     });
+
+
+    it("owner can add trusted remotes", async function () {
+        const otherChainId = 123;
+        const trustedRemote = "0x5fad09ac430b943ff5790bf2a42a55fd557c9c5f"; // random address that represents DAEM on another chain
+
+        // initially the lookup will be empty
+        expect(await DAEM.trustedRemoteLookup(otherChainId)).to.equal("0x");
+
+        // add a trusted remote
+        await DAEM.setTrustedRemote(otherChainId, trustedRemote);
+        expect(await DAEM.trustedRemoteLookup(otherChainId)).to.equal(trustedRemote);
+    });
+
+    it("only owner can add trusted remote", async function () {
+        const otherChainId = 123;
+        const trustedRemote = "0x5fad09ac430b943ff5790bf2a42a55fd557c9c5f"; // random address that represents DAEM on another chain
+
+        // anyone else adding a trusted remote will trigger an error
+        const addTrustedRemote = DAEM.connect(otherAddress).setTrustedRemote(otherChainId, trustedRemote);
+        await expect(addTrustedRemote).to.be.revertedWith("Ownable: caller is not the owner");
+    });
 });
