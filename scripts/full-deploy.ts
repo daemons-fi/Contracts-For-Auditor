@@ -1,11 +1,9 @@
 import { ethers } from "hardhat";
-import { deployDaemToken } from "./single-deployments/a1-daem-token";
 import { deployGasTank } from "./single-deployments/a2-gas-tank";
 import { deployTreasury } from "./single-deployments/a3.2-treasury";
 import { deployVesting } from "./single-deployments/a4-vesting";
 import { deployGasPriceFeed } from "./single-deployments/a5-gas-price-feed";
 import { finalizeGasTank } from "./single-deployments/a6-finalize-gas-tank";
-import { initializeToken } from "./single-deployments/a7-initialize-token";
 import { deploySwapperExecutor } from "./single-deployments/b1-swapper-executor";
 import { initializeSwapperExecutor } from "./single-deployments/b2-initialize-swapper-executor";
 import { registerSwapperExecutor } from "./single-deployments/b3-register-swapper-in-gas-tank";
@@ -49,6 +47,7 @@ import { deployUniswapV2LiquidityManager } from "./single-deployments/a3.1-unisw
 import { verifyVesting } from "./single-deployments/a4b-verify-vesting";
 import { verifyLiquidityManager } from "./single-deployments/a3.1b-verify-liquidity-manager";
 import { getContracts } from "./shared";
+import { initializeToken } from "./single-deployments/a7-initialize-token";
 
 async function deployDaemons() {
     let currentContracts = await getContracts()
@@ -69,12 +68,16 @@ async function deployDaemons() {
     currentContracts = await deployTreasury(currentContracts);
     await finalizeGasTank(currentContracts);
 
+    // Initialize & vest
+    /** NOTE: only to be called on BASE chains! */
+    // await initializeToken(currentContracts);
+    //await vestTokens(currentContracts, owner);
+
     /** NOTE: LP proportions must be manually set!! */
     const amountETH = ethers.utils.parseEther("0.1");
     const amountDAEM = ethers.utils.parseEther("150");
     await createLP(currentContracts, amountETH, amountDAEM);
     currentContracts = await retrieveLPAddress(currentContracts);
-    //await vestTokens(currentContracts, owner);
 
     // verify side contracts
     await verifyGasTank(currentContracts);

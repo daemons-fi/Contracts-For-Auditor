@@ -37,9 +37,6 @@ async function deployDAEMOnMumbai() {
     const DAEMAddress = await deploy(lzEndpoint, true);
     currentContracts = updateContracts(currentContracts, "DaemonsToken", DAEMAddress);
 
-    // Initialize
-    await initializeToken(currentContracts);
-
     // add all the other tokens as trusted remotes
     const DAEM = await getContract(currentContracts, "DaemonsToken");
     await DAEM.setTrustedRemote(10012, "0x38b29255994a57Ce80E52d95301ed1A980A3c5f9"); // FTM Testnet
