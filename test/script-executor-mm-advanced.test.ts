@@ -182,7 +182,7 @@ describe("ScriptExecutor - Money Market Advanced [FORKED CHAIN]", function () {
         await fooToken.mint(owner.address, ethers.utils.parseEther("100"));
 
         // register executor in gas tank
-        await gasTank.addExecutor(executor.address);
+        await gasTank.addOperator(executor.address);
         await gasTank.setDAEMToken(DAEMToken.address);
 
         // create liquidity manager

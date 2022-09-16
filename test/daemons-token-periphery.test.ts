@@ -6,12 +6,12 @@ import { ethers } from "hardhat";
 describe("Periphery DAEM Token", function () {
     let owner: SignerWithAddress;
     let otherAddress: SignerWithAddress;
-    let executor: SignerWithAddress;
+    let operator: SignerWithAddress;
     let DAEM: Contract;
 
     this.beforeEach(async () => {
         // get some wallets
-        [owner, otherAddress, executor] = await ethers.getSigners();
+        [owner, otherAddress, operator] = await ethers.getSigners();
 
         // instantiate BAL token contract
         const lzEndpoint = "0xa36085f69e2889c224210f603d836748e7dc0088"; // totally random address
@@ -30,25 +30,25 @@ describe("Periphery DAEM Token", function () {
         expect(await DAEM.totalSupply()).to.equal(BigNumber.from(0));
     });
 
-    it("owner can add and remove allowed executors", async function () {
-        expect(await DAEM.isExecutor(executor.address)).to.equal(false);
+    it("owner can add and remove allowed operators", async function () {
+        expect(await DAEM.isOperator(operator.address)).to.equal(false);
 
-        // add an allowed executor for inter-chain transfers
-        await DAEM.addExecutor(executor.address);
-        expect(await DAEM.isExecutor(executor.address)).to.equal(true);
+        // add an allowed operator for inter-chain transfers
+        await DAEM.addOperator(operator.address);
+        expect(await DAEM.isOperator(operator.address)).to.equal(true);
 
-        // remove the executor
-        await DAEM.removeExecutor(executor.address);
-        expect(await DAEM.isExecutor(executor.address)).to.equal(false);
+        // remove the operator
+        await DAEM.removeOperator(operator.address);
+        expect(await DAEM.isOperator(operator.address)).to.equal(false);
     });
 
-    it("only owner can add and remove allowed executors", async function () {
-        // try to have a non-owner to add an executor
-        const addExecutor = DAEM.connect(otherAddress).addExecutor(executor.address);
-        await expect(addExecutor).to.be.revertedWith("Ownable: caller is not the owner");
+    it("only owner can add and remove allowed operators", async function () {
+        // try to have a non-owner to add an operator
+        const addOperator = DAEM.connect(otherAddress).addOperator(operator.address);
+        await expect(addOperator).to.be.revertedWith("Ownable: caller is not the owner");
 
-        const removeExecutor = DAEM.connect(otherAddress).removeExecutor(executor.address);
-        await expect(removeExecutor).to.be.revertedWith("Ownable: caller is not the owner");
+        const removeOperator = DAEM.connect(otherAddress).removeOperator(operator.address);
+        await expect(removeOperator).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
 

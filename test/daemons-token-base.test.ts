@@ -7,12 +7,12 @@ describe("Base DAEM Token", function () {
     let owner: SignerWithAddress;
     let otherAddress: SignerWithAddress;
     let treasury: SignerWithAddress;
-    let executor: SignerWithAddress;
+    let operator: SignerWithAddress;
     let DAEM: Contract;
 
     this.beforeEach(async () => {
         // get some wallets
-        [owner, otherAddress, treasury, executor] = await ethers.getSigners();
+        [owner, otherAddress, treasury, operator] = await ethers.getSigners();
 
         // instantiate DAEM token contract using a random lzEndpoint
         const lzEndpoint = "0xa36085f69e2889c224210f603d836748e7dc0088"; // totally random address
@@ -51,35 +51,35 @@ describe("Base DAEM Token", function () {
         );
     });
 
-    it("owner can add and remove allowed executors", async function () {
-        await DAEM.initialize(executor.address);
-        expect(await DAEM.isExecutor(executor.address)).to.equal(false);
+    it("owner can add and remove allowed operators", async function () {
+        await DAEM.initialize(operator.address);
+        expect(await DAEM.isOperator(operator.address)).to.equal(false);
 
-        // add an allowed executor for inter-chain transfers
-        await DAEM.addExecutor(executor.address);
-        expect(await DAEM.isExecutor(executor.address)).to.equal(true);
+        // add an allowed operator for inter-chain transfers
+        await DAEM.addOperator(operator.address);
+        expect(await DAEM.isOperator(operator.address)).to.equal(true);
 
-        // remove the executor
-        await DAEM.removeExecutor(executor.address);
-        expect(await DAEM.isExecutor(executor.address)).to.equal(false);
+        // remove the operator
+        await DAEM.removeOperator(operator.address);
+        expect(await DAEM.isOperator(operator.address)).to.equal(false);
     });
 
-    it("only owner can add and remove allowed executors", async function () {
-        await DAEM.initialize(executor.address);
+    it("only owner can add and remove allowed operators", async function () {
+        await DAEM.initialize(operator.address);
 
-        // try to have a non-owner to add an executor
-        const addExecutor = DAEM.connect(otherAddress).addExecutor(executor.address);
-        await expect(addExecutor).to.be.revertedWith("Ownable: caller is not the owner");
+        // try to have a non-owner to add an operator
+        const addOperator = DAEM.connect(otherAddress).addOperator(operator.address);
+        await expect(addOperator).to.be.revertedWith("Ownable: caller is not the owner");
 
-        const removeExecutor = DAEM.connect(otherAddress).removeExecutor(executor.address);
-        await expect(removeExecutor).to.be.revertedWith("Ownable: caller is not the owner");
+        const removeOperator = DAEM.connect(otherAddress).removeOperator(operator.address);
+        await expect(removeOperator).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("owner can add trusted remotes", async function () {
         const otherChainId = 123;
         const trustedRemote = "0x5fad09ac430b943ff5790bf2a42a55fd557c9c5f"; // random address that represents DAEM on another chain
 
-        await DAEM.initialize(executor.address);
+        await DAEM.initialize(operator.address);
 
         // initially the lookup will be empty
         expect(await DAEM.trustedRemoteLookup(otherChainId)).to.equal("0x");
@@ -92,7 +92,7 @@ describe("Base DAEM Token", function () {
     it("only owner can add trusted remote", async function () {
         const otherChainId = 123;
         const trustedRemote = "0x5fad09ac430b943ff5790bf2a42a55fd557c9c5f"; // random address that represents DAEM on another chain
-        await DAEM.initialize(executor.address);
+        await DAEM.initialize(operator.address);
 
         // anyone else adding a trusted remote will trigger an error
         const addTrustedRemote = DAEM.connect(otherAddress).setTrustedRemote(otherChainId, trustedRemote);

@@ -1,9 +1,9 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 import "../interfaces/IGasTank.sol";
 import "../interfaces/ITreasury.sol";
-import "../utils/AllowedExecutors.sol";
+import "../utils/WithOperators.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /// @title GasTank Contract
 /// @notice Contract in which the user will deposit ETH (to pay gas costs) and DAEM (to pay tips).
 /// Executors will inform the GasTank each time a script is run and this will subtract the due amounts.
-contract GasTank is IGasTank, Ownable, AllowedExecutors {
+contract GasTank is IGasTank, Ownable, WithOperators {
     ITreasury public treasury;
     IERC20 internal DAEMToken;
     mapping(address => uint256) gasBalances;
@@ -110,7 +110,7 @@ contract GasTank is IGasTank, Ownable, AllowedExecutors {
         uint256 tipAmount,
         address user,
         address executor
-    ) external override onlyAllowedExecutors {
+    ) external override onlyOperators {
         gasBalances[user] -= ethAmount;
         rewardFromGas[executor] += ethAmount;
 

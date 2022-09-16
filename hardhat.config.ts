@@ -2,6 +2,7 @@ import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
+import "solidity-coverage";
 
 require("dotenv").config();
 const PRIVATE_KEY = process.env.PRIVATE_KEY;

@@ -93,7 +93,7 @@ describe("GasTank [FORKED CHAIN]", function () {
 
         // set gasTank dependencies
         await gasTank.setTreasury(treasury.address);
-        await gasTank.addExecutor(owner.address);
+        await gasTank.addOperator(owner.address);
         await gasTank.setDAEMToken(daemToken.address);
 
         // check that everything has been set correctly
@@ -199,7 +199,7 @@ describe("GasTank [FORKED CHAIN]", function () {
     });
 
     describe("Rewards and Claims (no tips included)", function () {
-        it("allows executors to add rewards", async () => {
+        it("allows operators to add rewards", async () => {
             // USER1 deposits 1 eth into the gas tank
             const oneEth = utils.parseEther("1.0");
             const zeroTip = utils.parseEther("0");
@@ -209,7 +209,7 @@ describe("GasTank [FORKED CHAIN]", function () {
             const userBalanceInTank = await gasTank.gasBalanceOf(user1.address);
             expect(userBalanceInTank).to.equal(oneEth);
 
-            // owner (impersonating the executor contract) adds a reward for user2
+            // owner (impersonating the operator contract) adds a reward for user2
             const rewardAmount = utils.parseEther("0.05");
             const rewardAmountToDAEM = utils.parseEther("0.049848757519718821");
             await gasTank
@@ -221,21 +221,21 @@ describe("GasTank [FORKED CHAIN]", function () {
             expect(await gasTank.gasBalanceOf(user1.address)).to.equal(oneEth.sub(rewardAmount));
         });
 
-        it("revert if non executors try to add a reward", async () => {
-            // remove executor so it'll revert the tx
-            await gasTank.removeExecutor(owner.address);
+        it("revert if non operators try to add a reward", async () => {
+            // remove operator so it'll revert the tx
+            await gasTank.removeOperator(owner.address);
 
             const oneEth = utils.parseEther("1.0");
             const zeroTip = utils.parseEther("0");
             const rewardAmount = utils.parseEther("0.05");
             await gasTank.connect(user1).depositGas({ value: oneEth });
 
-            // this will revert as owner is not marked as executor anymore
+            // this will revert as owner is not marked as operator anymore
             await expect(
                 gasTank
                     .connect(owner)
                     .addReward(fakeScriptId, rewardAmount, zeroTip, user1.address, user2.address)
-            ).to.be.revertedWith("Unauthorized. Only Executors");
+            ).to.be.revertedWith("Unauthorized. Only operators");
         });
 
         it("when claiming reward, ETH will be sent to treasury", async () => {

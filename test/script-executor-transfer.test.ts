@@ -130,7 +130,7 @@ describe("ScriptExecutor - Transfer [FORKED CHAIN]", function () {
         await DAEMToken.mint(owner.address, ethers.utils.parseEther("250"));
 
         // register executor in gas tank
-        await gasTank.addExecutor(executor.address);
+        await gasTank.addOperator(executor.address);
         await gasTank.setDAEMToken(DAEMToken.address);
 
         // create liquidity manager

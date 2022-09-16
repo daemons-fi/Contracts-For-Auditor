@@ -130,7 +130,7 @@ describe("ScriptExecutor - ZapOut [FORKED CHAIN]", function () {
         await executor.setGasFeed(gasPriceFeed.address);
 
         // register executor in gas tank
-        await gasTank.addExecutor(executor.address);
+        await gasTank.addOperator(executor.address);
         await gasTank.setDAEMToken(DAEMToken.address);
 
         // create liquidity manager

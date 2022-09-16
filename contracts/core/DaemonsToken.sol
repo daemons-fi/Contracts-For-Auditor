@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../utils/AllowedExecutors.sol";
+import "../utils/WithOperators.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@layerzerolabs/solidity-examples/contracts/token/oft/extension/GlobalCappedOFT.sol";
@@ -11,7 +11,7 @@ import "@layerzerolabs/solidity-examples/contracts/token/oft/OFT.sol";
 /// @notice Contracts representing DAEM tokens in the base chain.
 /// Whenever tokens are transferred away from this chain, they are locked in this contract and minted
 /// at the destination. Whenever tokens are sent back, they are burned at the source and unlocked on the base chain.
-contract DaemonsToken is Ownable, GlobalCappedOFT, AllowedExecutors {
+contract DaemonsToken is Ownable, GlobalCappedOFT, WithOperators {
     uint256 public constant MAX_SUPPLY = 1e9 * 1e18; // 1 Billion
 
     /// @notice Instantiates a new DAEM token on the base chain.
@@ -33,7 +33,7 @@ contract DaemonsToken is Ownable, GlobalCappedOFT, AllowedExecutors {
 
     /// @notice Send DAEM token across chains.
     /// @dev simply adds the modifier to only allow the contract owner or the
-    /// allowed executors (from `AllowedExecutors`) to call this function.
+    /// allowed operators (from `WithOperators`) to call this function.
     function sendFrom(
         address _from,
         uint16 _dstChainId,
@@ -42,7 +42,7 @@ contract DaemonsToken is Ownable, GlobalCappedOFT, AllowedExecutors {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes memory _adapterParams
-    ) public payable virtual override onlyOwnerOrAllowedExecutors {
+    ) public payable virtual override onlyOwnerOrOperators {
         (uint256 fee, ) = estimateSendFee(_dstChainId, _toAddress, _amount, false, _adapterParams);
         require(msg.value >= fee, "Not enough to cover fee");
 
@@ -62,7 +62,7 @@ contract DaemonsToken is Ownable, GlobalCappedOFT, AllowedExecutors {
 /// @notice Contracts representing DAEM tokens in all chains that are not the base one.
 /// Whenever tokens are transferred to this chain, they are minted to the destination address.
 /// Whenever tokens are sent away from this chain, they are burned.
-contract DaemonsTokenPeriphery is Ownable, OFT, AllowedExecutors {
+contract DaemonsTokenPeriphery is Ownable, OFT, WithOperators {
     uint256 public constant MAX_SUPPLY = 1e9 * 1e18; // 1 Billion
 
     /// @notice Instantiates a new DAEM token on a chain different from the base one.
@@ -70,7 +70,7 @@ contract DaemonsTokenPeriphery is Ownable, OFT, AllowedExecutors {
 
     /// @notice Send DAEM token across chains.
     /// @dev simply adds the modifier to only allow the contract owner or the
-    /// allowed executors (from `AllowedExecutors`) to call this function.
+    /// allowed operators (from `WithOperators`) to call this function.
     function sendFrom(
         address _from,
         uint16 _dstChainId,
@@ -79,7 +79,7 @@ contract DaemonsTokenPeriphery is Ownable, OFT, AllowedExecutors {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes memory _adapterParams
-    ) public payable virtual override onlyOwnerOrAllowedExecutors {
+    ) public payable virtual override onlyOwnerOrOperators {
         (uint256 fee, ) = estimateSendFee(_dstChainId, _toAddress, _amount, false, _adapterParams);
         require(msg.value >= fee, "Not enough to cover fee");
 
