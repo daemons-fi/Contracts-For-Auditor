@@ -96,7 +96,7 @@ describe("Treasury [FORKED CHAIN]", function () {
     describe("Owner controlled setters", function () {
         it("can change commission percentage", async () => {
             // initially commission is set to 1%
-            expect(await treasury.PERCENTAGE_COMMISSION()).to.equal(100);
+            expect(await treasury.PERCENTAGE_COMMISSION()).to.equal(500);
 
             // owner can change it
             await treasury.setCommissionPercentage(50);
@@ -117,7 +117,7 @@ describe("Treasury [FORKED CHAIN]", function () {
 
         it("can change protocol owned liquidity (POL) percentage", async () => {
             // initially POL percentage is set to 49%
-            expect(await treasury.PERCENTAGE_POL()).to.equal(4900);
+            expect(await treasury.PERCENTAGE_POL()).to.equal(4500);
 
             // owner can change it
             await treasury.setPolPercentage(3000);
@@ -262,8 +262,8 @@ describe("Treasury [FORKED CHAIN]", function () {
                 .requestPayout(user1.address, amountTip, { value: amountEth });
 
             // 1% commission, 49% POL, 50% redistribution
-            expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0.01"));
-            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.49"));
+            expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0.05"));
+            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.45"));
             expect(await treasury.redistributionPool()).to.equal(ethers.utils.parseEther("0.50"));
         });
     });
@@ -305,8 +305,8 @@ describe("Treasury [FORKED CHAIN]", function () {
                 .stakePayout(user1.address, amountTip, { value: amountEth });
 
             // 1% commission, 49% POL, 50% redistribution
-            expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0.01"));
-            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.49"));
+            expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0.05"));
+            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.45"));
             expect(await treasury.redistributionPool()).to.equal(ethers.utils.parseEther("0.50"));
         });
 
@@ -586,7 +586,7 @@ describe("Treasury [FORKED CHAIN]", function () {
     });
 
     describe("Commissions", function () {
-        it("owner can withdraw commission from the pool", async () => {
+        const addCommissionToTreasury = async () => {
             const ownerInitialBalance = await provider.getBalance(owner.address);
 
             const amountEth = ethers.utils.parseEther("1.0");
@@ -594,15 +594,30 @@ describe("Treasury [FORKED CHAIN]", function () {
             await treasury
                 .connect(gasTank)
                 .requestPayout(user1.address, zero, { value: amountEth });
+        };
 
-            // anyone else will cause error
-            await expect(treasury.connect(user1).claimCommission()).to.be.revertedWith(
-                "Ownable: caller is not the owner"
-            );
-            expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0.01"));
-
-            // but owner can claim commission
+        it("claim function can be called by anyone", async () => {
             await treasury.connect(owner).claimCommission();
+            await treasury.connect(gasTank).claimCommission();
+            await treasury.connect(user1).claimCommission();
+            // no errors means the test succeeded
+        });
+
+        it("commission depends on the PERCENTAGE_COMMISSION value", async () => {
+            await addCommissionToTreasury();
+            const amountEth = ethers.utils.parseEther("1.0");
+            const PERCENTAGE_COMMISSION = await treasury.PERCENTAGE_COMMISSION();
+            const commission = await treasury.commissionsPool();
+
+            expect(commission).to.equal(amountEth.mul(PERCENTAGE_COMMISSION).div(10000));
+        });
+
+        it("owner can withdraw commission from the pool", async () => {
+            const ownerInitialBalance = await provider.getBalance(owner.address);
+            await addCommissionToTreasury();
+            expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0.05"));
+
+            await treasury.claimCommission();
 
             // commission pool is emptied
             expect(await treasury.commissionsPool()).to.equal(ethers.utils.parseEther("0"));
@@ -612,12 +627,26 @@ describe("Treasury [FORKED CHAIN]", function () {
             const ownerFinalBalance = await provider.getBalance(owner.address);
             expect(ownerFinalBalance.gt(ownerInitialBalance)).to.be.true;
         });
+
+        it("each time commission is claimed `totalCommission` is incremented", async () => {
+            await addCommissionToTreasury();
+            await treasury.connect(owner).claimCommission();
+
+            // totalCommission has increased
+            expect(await treasury.totalCommission()).to.equal(ethers.utils.parseEther("0.05"));
+
+            await addCommissionToTreasury();
+            await treasury.connect(owner).claimCommission();
+
+            // totalCommission has increased again
+            expect(await treasury.totalCommission()).to.equal(ethers.utils.parseEther("0.1"));
+        });
     });
 
     describe("Protocol Owned Liquidity", function () {
         it("LP funding can only be executed by admin", async () => {
             await expect(treasury.connect(user1).fundLP(0)).to.be.revertedWith(
-                "Ownable: caller is not the owner"
+                "Unauthorized. operators/Owner"
             );
         });
 
@@ -632,7 +661,7 @@ describe("Treasury [FORKED CHAIN]", function () {
             const ETHAmount = utils.parseEther("1.0");
             const zero = ethers.utils.parseEther("0");
             await treasury.connect(gasTank).stakePayout(user1.address, zero, { value: ETHAmount });
-            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.49"));
+            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.45"));
 
             // create a lot of DAEM to increase the totalSupply,
             // so to *NOT* trigger buybacks
@@ -650,7 +679,7 @@ describe("Treasury [FORKED CHAIN]", function () {
             const ETHAmount = utils.parseEther("1.0");
             const zero = ethers.utils.parseEther("0");
             await treasury.connect(gasTank).stakePayout(user1.address, zero, { value: ETHAmount });
-            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.49"));
+            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.45"));
 
             // create a lot of DAEM to increase the totalSupply,
             // so to *NOT* trigger buybacks
@@ -677,9 +706,9 @@ describe("Treasury [FORKED CHAIN]", function () {
             const ETHAmount = utils.parseEther("1.0");
             const zero = ethers.utils.parseEther("0");
             await treasury.connect(gasTank).stakePayout(user1.address, zero, { value: ETHAmount });
-            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.49"));
+            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.45"));
 
-            const quote = await treasury.ethToDAEM(ethers.utils.parseEther("0.49"));
+            const quote = await treasury.ethToDAEM(ethers.utils.parseEther("0.45"));
             const amountTooHigh = quote.add(10000000000);
             await expect(treasury.buybackDAEM(amountTooHigh)).to.be.revertedWith(
                 "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
@@ -691,11 +720,11 @@ describe("Treasury [FORKED CHAIN]", function () {
             const ETHAmount = utils.parseEther("1.0");
             const zero = ethers.utils.parseEther("0");
             await treasury.connect(gasTank).stakePayout(user1.address, zero, { value: ETHAmount });
-            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.49"));
+            expect(await treasury.polPool()).to.equal(ethers.utils.parseEther("0.45"));
             const initiallyOwnedDAEM = await daemToken.balanceOf(treasury.address);
 
             // buyback
-            const amountMinusSlippage = (await treasury.ethToDAEM(ethers.utils.parseEther("0.49")))
+            const amountMinusSlippage = (await treasury.ethToDAEM(ethers.utils.parseEther("0.45")))
                 .mul(99)
                 .div(100);
             await treasury.buybackDAEM(amountMinusSlippage);

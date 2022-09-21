@@ -19,8 +19,8 @@ contract Treasury is ITreasury, Ownable, WithOperators {
     address private gasTank;
     ILiquidityManager private liquidityManager;
 
-    uint16 public PERCENTAGE_COMMISSION = 100;
-    uint16 public PERCENTAGE_POL = 4900;
+    uint16 public PERCENTAGE_COMMISSION = 500;
+    uint16 public PERCENTAGE_POL = 4500;
     // the remaining percentage will be redistributed
 
     uint16 public PERCENTAGE_POL_TO_ENABLE_BUYBACK = 1000;
@@ -30,6 +30,7 @@ contract Treasury is ITreasury, Ownable, WithOperators {
     uint256 public redistributionPool;
     uint256 public commissionsPool;
     uint256 public polPool;
+    uint256 public totalCommission;
 
     // staking vars
     uint256 public redistributionInterval = 180 days;
@@ -271,10 +272,11 @@ contract Treasury is ITreasury, Ownable, WithOperators {
     }
 
     /// @notice Claims the commissions and send them to the contract owner wallet
-    function claimCommission() external onlyOwnerOrOperators {
+    function claimCommission() external {
         uint256 amount = commissionsPool;
+        totalCommission += amount;
         commissionsPool = 0;
-        payable(_msgSender()).transfer(amount);
+        payable(owner()).transfer(amount);
     }
 
     /// @notice Send a specified amount of DAEM tokens to a treasury on another chain
