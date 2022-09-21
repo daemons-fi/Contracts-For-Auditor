@@ -280,10 +280,12 @@ contract Treasury is ITreasury, Ownable, WithOperators {
     /// @notice Send a specified amount of DAEM tokens to a treasury on another chain
     /// @param lzChainId the LayerZero chain identifier of the chain we are targeting
     /// @param amount the amount of DAEM tokens to send to the treasury on the target chain
+    /// @param _adapterParams extra information that might be needed by LayerZero
     function sendDAEMToTreasuryOnOtherChain(
         uint16 lzChainId,
         bytes calldata treasuryAddress,
-        uint256 amount
+        uint256 amount,
+        bytes memory _adapterParams
     ) external payable onlyOwner {
         OFT DAEM = OFT(address(token));
         (uint256 fee, ) = DAEM.estimateSendFee(
@@ -291,7 +293,7 @@ contract Treasury is ITreasury, Ownable, WithOperators {
             treasuryAddress,
             amount,
             false,
-            bytes("")
+            _adapterParams
         );
         require(msg.value >= fee, "Fee not covered");
 
@@ -302,7 +304,7 @@ contract Treasury is ITreasury, Ownable, WithOperators {
             amount,
             payable(msg.sender),
             msg.sender,
-            bytes("")
+            _adapterParams
         );
     }
 
